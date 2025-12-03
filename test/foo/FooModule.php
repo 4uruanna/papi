@@ -1,5 +1,7 @@
 <?php
 
+namespace Papi\Test\foo;
+
 use Papi\Module;
 
 final class FooModule extends Module

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . "/foo/FooModule.php";
+namespace Papi\Test;
 
-use Papi\Module\Module;
+use Papi\Module;
+use Papi\Test\foo\FooModule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\TestCase;

@@ -6,7 +6,8 @@
     "license": "Apache-2.0",
     "autoload": {
         "psr-4": {
-            "Papi\\": "source/"
+            "Papi\\": "source/",
+            "Papi\\Test\\": "test/"
         }
     },
     "authors": [
