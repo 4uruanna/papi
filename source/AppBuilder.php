@@ -79,7 +79,7 @@ final class AppBuilder
 
     /**
      * Set application routes
-     * 
+     *
      * @param array $routes
      * @return AppBuilder
      */

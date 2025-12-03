@@ -8,7 +8,7 @@ abstract class Module
 
     /**
      * Load middlewares
-     * 
+     *
      * [Slim documentation: Middleware](https://www.slimframework.com/docs/v4/concepts/middleware.html)
      * @return \Psr\Http\Server\MiddlewareInterface[]|false
      */
@@ -19,7 +19,7 @@ abstract class Module
 
     /**
      * Load definitions
-     * 
+     *
      * [Slim documentation: Dependency Container](https://www.slimframework.com/docs/v4/concepts/di.html)
      * and [Php-di documentation](https://php-di.org/)
      * @return array|false
@@ -31,7 +31,7 @@ abstract class Module
 
     /**
      * Load routes
-     * 
+     *
      * [Slim documentation: Routing](https://www.slimframework.com/docs/v4/objects/routing.html#custom-route)
      */
     public function getRoutes(): array|false
