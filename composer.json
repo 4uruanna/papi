@@ -16,7 +16,8 @@
         }
     ],
     "scripts": {
-        "lint": "./vendor/bin/phpcbf || true && ./vendor/bin/phpcs"
+        "lint": "./vendor/bin/phpcbf || true && ./vendor/bin/phpcs",
+        "test": "./vendor/bin/phpunit"
     },
     "require": {
         "php": ">=8.5.0",
@@ -25,6 +26,7 @@
         "php-di/slim-bridge": "^3.4"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^4.0"
+        "squizlabs/php_codesniffer": "^4.0",
+        "phpunit/phpunit": "^12.4"
     }
 }
