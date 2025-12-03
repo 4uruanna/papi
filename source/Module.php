@@ -51,7 +51,7 @@ abstract class Module
     {
         $file_path = $this->path . DIRECTORY_SEPARATOR . $file_name;
 
-        if ($file_path) {
+        if (file_exists($file_path)) {
             return require $file_path;
         }
 
