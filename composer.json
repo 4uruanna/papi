@@ -15,11 +15,16 @@
             "email": "adrien@villalonga.software"
         }
     ],
+    "scripts": {
+        "lint": "./vendor/bin/phpcbf || true && ./vendor/bin/phpcs"
+    },
     "require": {
         "php": ">=8.5.0",
         "slim/slim": "^4.15",
         "slim/psr7": "^1.8",
         "php-di/slim-bridge": "^3.4"
     },
-    "require-dev": {}
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^4.0"
+    }
 }
