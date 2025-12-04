@@ -39,7 +39,7 @@ final class AppBuilder
      * @param array|string $callback
      * @return AppBuilder
      */
-    public function on(int $event, array|string $callback): AppBuilder
+    public function on(int $event, array|string|callable $callback): AppBuilder
     {
         if (!isset($this->events[$event])) {
             $this->events[$event] = [];
@@ -202,7 +202,11 @@ final class AppBuilder
     {
         if (isset($this->events[$event])) {
             foreach ($this->events[$event] as $callback) {
-                call_user_func($callback, ...$args);
+                if (is_callable($callback)) {
+                    $callback(...$args);
+                } else {
+                    call_user_func($callback, ...$args);
+                }
             }
         }
     }
