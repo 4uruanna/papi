@@ -94,18 +94,28 @@ final class AppBuilder
     /**
      * Set application modules
      *
-     * @param \Papi\Module $modules
+     * @param \Papi\Module[] $modules
      * @return AppBuilder
      */
     public function setModules(array $modules): AppBuilder
     {
         foreach ($modules as $module) {
-            $this->setMiddlewares($module->getMiddlewares());
-            $this->setDefinitions($module->getDefinitions());
-            $this->setRoutes($module->getRoutes());
+            if ($middlewares = $module->getMiddlewares()) {
+                $this->setMiddlewares($middlewares);
+            }
 
-            foreach ($module->getEvents() as $event) {
-                $this->on(...$event);
+            if ($definitions = $module->getDefinitions()) {
+                $this->setDefinitions($definitions);
+            }
+
+            if ($routes = $module->getRoutes()) {
+                $this->setRoutes($routes);
+            }
+
+            if ($events = $module->getEvents()) {
+                foreach ($events as $event) {
+                    $this->on(...$event);
+                }
             }
         }
         return $this;
