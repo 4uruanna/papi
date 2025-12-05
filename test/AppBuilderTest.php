@@ -4,64 +4,37 @@ declare(strict_types=1);
 
 namespace Papi\Test;
 
-use Mockery;
-use PHPUnit\Framework\TestCase;
 use Papi\AppBuilder;
-use Papi\enumerator\AppBuilderEvents;
 use Papi\Test\foo\FooModule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Small;
 use Slim\App;
+use Slim\Exception\HttpNotFoundException;
 
 #[CoversClass(AppBuilder::class)]
 #[Small]
-final class AppBuilderTest extends TestCase
+final class AppBuilderTest extends ApiTestCase
 {
-    public function tearDown(): void
+    protected App $app;
+
+    public function setUp(): void
     {
-        Mockery::close();
+        $this->app = new AppBuilder()
+            ->setModules([FooModule::class])
+            ->build();
     }
 
-    public function testLoadModule(): void
+    public function testHome(): void
     {
-        $module = Mockery::mock(FooModule::class);
-
-        $module->shouldReceive('getMiddlewares')->andReturn(false);
-        $module->shouldReceive('getDefinitions')->andReturn(false);
-        $module->shouldReceive('getRoutes')->andReturn(false);
-        $module->shouldReceive('getEvents')->andReturn(false);
-
-        $appBuilder = new AppBuilder();
-        $app = $appBuilder
-            ->setModules([$module])
-            ->build();
-
-        $this->assertInstanceOf(App::class, $app);
+        $request = $this->createRequest('GET', '/');
+        $response = $this->app->handle($request);
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
-    public function testLoadCallableEvent(): void
+    public function testNotFound(): void
     {
-        $bool = false;
-
-        $module = Mockery::mock(FooModule::class);
-        $module->shouldReceive('getMiddlewares')->andReturn(false);
-        $module->shouldReceive('getDefinitions')->andReturn(false);
-        $module->shouldReceive('getRoutes')->andReturn(false);
-        $module->shouldReceive('getEvents')->andReturn([
-            [
-                AppBuilderEvents::BEFORE,
-                function () use (&$bool) {
-                    $bool = true;
-                }
-            ]
-        ]);
-
-        $appBuilder = new AppBuilder();
-        $app = $appBuilder
-            ->setModules([$module])
-            ->build();
-
-        $this->assertInstanceOf(App::class, $app);
-        $this->assertTrue($bool);
+        $request = $this->createRequest('GET', '/notFoundEndpoint');
+        $this->expectException(HttpNotFoundException::class);
+        $response = $this->app->handle($request);
     }
 }

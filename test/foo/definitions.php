@@ -1,3 +1,5 @@
 <?php
 
-return [1, 2, 3];
+namespace Papi\Test\foo;
+
+return [];

@@ -5,18 +5,23 @@ namespace Papi;
 use DI\Bridge\Slim\Bridge;
 use DI\Container;
 use DI\ContainerBuilder;
-use Papi\enumerator\AppBuilderEvents;
+use Papi\enumerator\EventPhases;
+use Papi\enumerator\HttpMethods;
+use Papi\error\NotImplementedException;
 use Slim\App;
 
 final class AppBuilder
 {
-    private array $middlewares = [];
+    private array $definition_list = [];
 
-    private array $definitions = [];
+    /** @var Middleware[][] */
+    private array $middleware_list = [];
 
-    private array $routes = [];
+    /** @var Action[] */
+    private array $action_list = [];
 
-    private array $events = [];
+    /** @var Event[][] */
+    private array $event_map = [];
 
     /**
      * Reset the builder
@@ -25,99 +30,130 @@ final class AppBuilder
      */
     public function reset(): AppBuilder
     {
-        $this->middlewares = [];
-        $this->definitions = [];
-        $this->routes = [];
-        $this->events = [];
+        $this->middleware_list = [];
+        $this->definition_list = [];
+        $this->action_list = [];
+        $this->event_map = [];
         return $this;
     }
 
     /**
-     * Add application event listener
+     * Add api event listener
      *
-     * @param int $event
-     * @param array|string $callback
+     * @param int $event \Papi\enumerator\EventPhases
+     * @param string[] $event_list
      * @return AppBuilder
      */
-    public function on(int $event, array|string|callable $callback): AppBuilder
+    public function setEvents(array $event_list): AppBuilder
     {
-        if (!isset($this->events[$event])) {
-            $this->events[$event] = [];
+        $length = count($event_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            /** @var Event */
+            $event = new $event_list[$index]();
+
+            if (!isset($this->event_map[$event->phase])) {
+                $this->event_map[$event->phase] = [];
+            }
+
+            $this->event_map[$event->phase][] = $event;
         }
 
-        $this->events[$event][] = $callback;
         return $this;
     }
 
     /**
-     * Set appliation middlewares
+     * Set api middlewares
      *
-     * @param array $middlewares
+     * @param string[] $middleware_list
      * @return AppBuilder
      */
-    public function setMiddlewares(array $middlewares): AppBuilder
+    public function setMiddlewares(array $middleware_list): AppBuilder
     {
-        foreach ($middlewares as $middleware) {
-            $this->middlewares[] = $middleware;
+        $length = count($middleware_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            /** @var Middleware */
+            $middleware = new $middleware_list[$index]();
+
+            if (!isset($this->middleware_list[$middleware->priority])) {
+                $this->middleware_list[$middleware->priority] = [];
+            }
+
+            $this->middleware_list[$middleware->priority][] = $middleware;
         }
+
         return $this;
     }
 
     /**
-     * Set DI definitions
+     * Set dependencies definitions
      *
-     * @param array $definitions
+     * @param array $definition_list
      * @return AppBuilder
      */
-    public function setDefinitions(array $definitions): AppBuilder
+    public function setDefinitions(array $definition_list): AppBuilder
     {
-        foreach ($definitions as $class => $definition) {
-            $this->definitions[$class] = $definition;
+        $length = count($definition_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $this->definition_list[] = $definition_list[$index];
         }
+
         return $this;
     }
 
     /**
-     * Set application routes
+     * Set api actions
      *
-     * @param array $routes
+     * @param Action[] $action_list
      * @return AppBuilder
      */
-    public function setRoutes(array $routes): AppBuilder
+    public function setActions(array $action_list): AppBuilder
     {
-        foreach ($routes as $route) {
-            $this->routes[] = $route;
+        $length = count($action_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $this->action_list[] = new $action_list[$index]();
         }
+
         return $this;
     }
 
     /**
      * Set application modules
      *
-     * @param \Papi\Module[] $modules
+     * @param string[] $module_list
      * @return AppBuilder
      */
-    public function setModules(array $modules): AppBuilder
+    public function setModules(array $module_list): AppBuilder
     {
-        foreach ($modules as $module) {
-            if ($middlewares = $module->getMiddlewares()) {
+        $length = count($module_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $instance = new $module_list[$index]();
+
+            if (($instance instanceof Module) === false) {
+                throw new NotImplementedException();
+            }
+
+            if ($middlewares = $instance->getMiddlewares()) {
                 $this->setMiddlewares($middlewares);
             }
 
-            if ($definitions = $module->getDefinitions()) {
+            if ($definitions = $instance->getDefinitions()) {
                 $this->setDefinitions($definitions);
             }
 
-            if ($routes = $module->getRoutes()) {
-                $this->setRoutes($routes);
+            if ($routes = $instance->getActions()) {
+                $this->setActions($routes);
             }
 
-            if ($events = $module->getEvents()) {
-                foreach ($events as $event) {
-                    $this->on(...$event);
-                }
+            if ($events = $instance->getEvents()) {
+                $this->setEvents($events);
             }
         }
+
         return $this;
     }
 
@@ -128,7 +164,7 @@ final class AppBuilder
      */
     public function build(): App
     {
-        $this->callEvents(AppBuilderEvents::BEFORE);
+        $this->callEvents(EventPhases::BEFORE);
 
         $container = $this->loadContainer();
 
@@ -136,9 +172,9 @@ final class AppBuilder
 
         $this->loadMiddlewares($app);
 
-        $this->loadRoutes($app);
+        $this->loadActions($app);
 
-        $this->callEvents(AppBuilderEvents::AFTER, $app);
+        $this->callEvents(EventPhases::AFTER, $app);
 
         return $app;
     }
@@ -152,61 +188,98 @@ final class AppBuilder
     {
         $container_builder = new ContainerBuilder();
 
-        $this->callEvents(AppBuilderEvents::BEFORE_DI, $container_builder);
+        $this->callEvents(EventPhases::BEFORE_DI, $container_builder);
 
-        $container_builder->addDefinitions($this->definitions);
+        $container_builder->addDefinitions($this->definition_list);
 
         $container = $container_builder->build();
 
-        $this->callEvents(AppBuilderEvents::AFTER_DI, $container);
+        $this->callEvents(EventPhases::AFTER_DI, $container);
 
         return $container;
     }
 
     /**
      * Load application middlewares
+     *
+     * @param App $app
+     * @return void
      */
     private function loadMiddlewares(App $app): void
     {
-        $this->callEvents(AppBuilderEvents::BEFORE_MIDDLEWARES, $app, $this->middlewares);
+        $this->callEvents(EventPhases::BEFORE_MIDDLEWARES, $app, $this->middleware_list);
 
-        foreach ($this->middlewares as $middleware) {
-            if (is_array($middleware)) {
-                call_user_func($middleware[0], $app);
-            } else {
-                $app->add($middleware);
+        $priority_list = array_keys($this->middleware_list);
+        $length = count(array_keys($this->middleware_list));
+
+        for ($index = 0; $index < $length; $index++) {
+            $priority = $priority_list[$index];
+            $length_list = count($this->middleware_list[$priority]);
+
+            for ($index_list = 0; $index_list < $length_list; $index_list++) {
+                $app->add($this->middleware_list[$priority][$index_list]);
             }
         }
 
-        $this->callEvents(AppBuilderEvents::AFTER_MIDDLEWARES, $app);
+        $this->callEvents(EventPhases::AFTER_MIDDLEWARES, $app);
     }
 
     /**
-     * Load application routes
+     * Load application actions
+     *
+     * @param App $app
+     * @return void
      */
-    private function loadRoutes(App $app): void
+    private function loadActions(App $app): void
     {
-        $this->callEvents(AppBuilderEvents::BEFORE_ROUTES, $app, $this->routes);
+        $this->callEvents(EventPhases::BEFORE_ACTIONS, $app, $this->action_list);
 
-        foreach ($this->routes as $route) {
-            $app->map(...$route);
+        $length = count($this->action_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $pattern = $this->action_list[$index]->pattern;
+            $http_method = $this->action_list[$index]->http_method;
+
+            switch ($http_method) {
+                case HttpMethods::GET:
+                    $app->get($pattern, [$this->action_list[$index]::class, '__invoke']);
+                    break;
+
+                case HttpMethods::POST:
+                    $app->post($pattern, [$this->action_list[$index]::class, '__invoke']);
+                    break;
+
+                case HttpMethods::PUT:
+                    $app->put($pattern, [$this->action_list[$index]::class, '__invoke']);
+                    break;
+
+                case HttpMethods::PATCH:
+                    $app->patch($pattern, [$this->action_list[$index]::class, '__invoke']);
+                    break;
+
+                case HttpMethods::DELETE:
+                    $app->delete($pattern, [$this->action_list[$index]::class, '__invoke']);
+                    break;
+            }
         }
 
-        $this->callEvents(AppBuilderEvents::AFTER_ROUTES, $app);
+        $this->callEvents(EventPhases::AFTER_ACTIONS, $app);
     }
 
     /**
      * Call application events
+     *
+     * @param int $event \Papi\enumerator\EventPhases
+     * @param mixed ...$args
+     * @return void
      */
-    private function callEvents(int $event, mixed ...$args)
+    private function callEvents(int $event, mixed ...$args): void
     {
-        if (isset($this->events[$event])) {
-            foreach ($this->events[$event] as $callback) {
-                if (is_callable($callback)) {
-                    $callback(...$args);
-                } else {
-                    call_user_func($callback, ...$args);
-                }
+        if (isset($this->event_map[$event])) {
+            $length = count($this->event_map[$event]);
+
+            for ($index = 0; $index < $length; $index++) {
+                $this->event_map[$event][$index](...$args);
             }
         }
     }

@@ -1,7 +1,7 @@
 {
     "name": "papi/papi",
-    "version": "0.1.4",
-    "description": "Slim Framework Helpers",
+    "version": "1.0.0",
+    "description": "Slim Framework Builder",
     "type": "library",
     "license": "Apache-2.0",
     "autoload": {

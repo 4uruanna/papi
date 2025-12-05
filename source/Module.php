@@ -10,7 +10,8 @@ abstract class Module
      * Load middlewares
      *
      * [Slim documentation: Middleware](https://www.slimframework.com/docs/v4/concepts/middleware.html)
-     * @return \Psr\Http\Server\MiddlewareInterface[]|false
+     *
+     * @return string[]|false
      */
     public function getMiddlewares(): array|false
     {
@@ -22,6 +23,7 @@ abstract class Module
      *
      * [Slim documentation: Dependency Container](https://www.slimframework.com/docs/v4/concepts/di.html)
      * and [Php-di documentation](https://php-di.org/)
+     *
      * @return array|false
      */
     public function getDefinitions(): array|false
@@ -30,23 +32,33 @@ abstract class Module
     }
 
     /**
-     * Load routes
+     * Load actions
      *
      * [Slim documentation: Routing](https://www.slimframework.com/docs/v4/objects/routing.html#custom-route)
+     *
+     * @return string[]|false
      */
-    public function getRoutes(): array|false
+    public function getActions(): array|false
     {
-        return $this->requireFileIfExists('routes.php');
+        return $this->requireFileIfExists('actions.php');
     }
 
     /**
      * Load events
+     *
+     * @return string[]|false
      */
     public function getEvents(): array|false
     {
         return $this->requireFileIfExists('events.php');
     }
 
+    /**
+     * Load file if exists
+     *
+     * @param string $file_name
+     * @return array|false
+     */
     private function requireFileIfExists(string $file_name): array|false
     {
         $file_path = $this->path . DIRECTORY_SEPARATOR . $file_name;

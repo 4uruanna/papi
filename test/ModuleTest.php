@@ -18,9 +18,9 @@ final class ModuleTest extends TestCase
     {
         $module = new FooModule();
 
-        $this->assertEquals(false, $module->getEvents());
-        $this->assertEquals(3, count($module->getDefinitions()));
-        $this->assertEquals(2, count($module->getMiddlewares()));
-        $this->assertEquals(1, count($module->getRoutes()));
+        $this->assertEquals(0, count($module->getDefinitions()));
+        $this->assertEquals(1, count($module->getEvents()));
+        $this->assertEquals(1, count($module->getMiddlewares()));
+        $this->assertEquals(1, count($module->getActions()));
     }
 }
