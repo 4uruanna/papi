@@ -94,10 +94,11 @@ final class AppBuilder
      */
     public function setDefinitions(array $definition_list): AppBuilder
     {
-        $length = count($definition_list);
+        $keys = array_keys($definition_list);
+        $length = count($keys);
 
         for ($index = 0; $index < $length; $index++) {
-            $this->definition_list[] = $definition_list[$index];
+            $this->definition_list[$keys[$index]] = $definition_list[$keys[$index]];
         }
 
         return $this;

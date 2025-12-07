@@ -2,4 +2,10 @@
 
 namespace Papi\Test\foo;
 
-return [];
+use Papi\AppBuilder;
+
+use function DI\create;
+
+return [
+    AppBuilder::class => create()->constructor()
+];
