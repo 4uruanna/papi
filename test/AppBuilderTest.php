@@ -29,6 +29,10 @@ final class AppBuilderTest extends ApiTestCase
         $request = $this->createRequest('GET', '/');
         $response = $this->app->handle($request);
         $this->assertEquals(200, $response->getStatusCode());
+
+        $body = (string) $response->getBody();
+        $this->assertArrayHasKey("hello", json_decode($body, true));
+        $this->assertEquals("foo", json_decode($body, true)["hello"]);
     }
 
     public function testNotFound(): void

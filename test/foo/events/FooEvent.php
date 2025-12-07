@@ -5,11 +5,15 @@ namespace Papi\Test\foo\events;
 use Papi\enumerator\EventPhases;
 use Papi\Event;
 
-class FooEvent extends Event
+class FooEvent implements Event
 {
     public static bool $loaded = false;
 
-    public int $phase = EventPhases::BEFORE;
+
+    public static function getPhase(): int
+    {
+        return EventPhases::BEFORE;
+    }
 
     public function __invoke(mixed ...$args): void
     {

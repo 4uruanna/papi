@@ -24,104 +24,6 @@ final class AppBuilder
     private array $event_map = [];
 
     /**
-     * Reset the builder
-     *
-     * @return AppBuilder
-     */
-    public function reset(): AppBuilder
-    {
-        $this->middleware_list = [];
-        $this->definition_list = [];
-        $this->action_list = [];
-        $this->event_map = [];
-        return $this;
-    }
-
-    /**
-     * Add api event listener
-     *
-     * @param int $event \Papi\enumerator\EventPhases
-     * @param string[] $event_list
-     * @return AppBuilder
-     */
-    public function setEvents(array $event_list): AppBuilder
-    {
-        $length = count($event_list);
-
-        for ($index = 0; $index < $length; $index++) {
-            /** @var Event */
-            $event = new $event_list[$index]();
-
-            if (!isset($this->event_map[$event->phase])) {
-                $this->event_map[$event->phase] = [];
-            }
-
-            $this->event_map[$event->phase][] = $event;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set api middlewares
-     *
-     * @param string[] $middleware_list
-     * @return AppBuilder
-     */
-    public function setMiddlewares(array $middleware_list): AppBuilder
-    {
-        $length = count($middleware_list);
-
-        for ($index = 0; $index < $length; $index++) {
-            /** @var Middleware */
-            $middleware = new $middleware_list[$index]();
-
-            if (!isset($this->middleware_list[$middleware->priority])) {
-                $this->middleware_list[$middleware->priority] = [];
-            }
-
-            $this->middleware_list[$middleware->priority][] = $middleware;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set dependencies definitions
-     *
-     * @param array $definition_list
-     * @return AppBuilder
-     */
-    public function setDefinitions(array $definition_list): AppBuilder
-    {
-        $keys = array_keys($definition_list);
-        $length = count($keys);
-
-        for ($index = 0; $index < $length; $index++) {
-            $this->definition_list[$keys[$index]] = $definition_list[$keys[$index]];
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set api actions
-     *
-     * @param Action[] $action_list
-     * @return AppBuilder
-     */
-    public function setActions(array $action_list): AppBuilder
-    {
-        $length = count($action_list);
-
-        for ($index = 0; $index < $length; $index++) {
-            $this->action_list[] = new $action_list[$index]();
-        }
-
-        return $this;
-    }
-
-    /**
      * Set application modules
      *
      * @param string[] $module_list
@@ -201,70 +103,45 @@ final class AppBuilder
     }
 
     /**
-     * Load application middlewares
+     * Reset the builder
      *
-     * @param App $app
-     * @return void
+     * @return AppBuilder
      */
-    private function loadMiddlewares(App $app): void
+    public function reset(): AppBuilder
     {
-        $this->callEvents(EventPhases::BEFORE_MIDDLEWARES, $app, $this->middleware_list);
-
-        $priority_list = array_keys($this->middleware_list);
-        $length = count(array_keys($this->middleware_list));
-
-        for ($index = 0; $index < $length; $index++) {
-            $priority = $priority_list[$index];
-            $length_list = count($this->middleware_list[$priority]);
-
-            for ($index_list = 0; $index_list < $length_list; $index_list++) {
-                $app->add($this->middleware_list[$priority][$index_list]);
-            }
-        }
-
-        $this->callEvents(EventPhases::AFTER_MIDDLEWARES, $app);
+        $this->middleware_list = [];
+        $this->definition_list = [];
+        $this->action_list = [];
+        $this->event_map = [];
+        return $this;
     }
 
-    /**
-     * Load application actions
-     *
-     * @param App $app
-     * @return void
-     */
-    private function loadActions(App $app): void
-    {
-        $this->callEvents(EventPhases::BEFORE_ACTIONS, $app, $this->action_list);
+    /****************************************************/
+    /* EVENTS                                           */
+    /****************************************************/
 
-        $length = count($this->action_list);
+    /**
+     * Add api event listener
+     *
+     * @param int $event \Papi\enumerator\EventPhases
+     * @param string[] $event_list
+     * @return AppBuilder
+     */
+    public function setEvents(array $event_list): AppBuilder
+    {
+        $length = count($event_list);
 
         for ($index = 0; $index < $length; $index++) {
-            $pattern = $this->action_list[$index]->pattern;
-            $http_method = $this->action_list[$index]->http_method;
+            $phase = $event_list[$index]::getPhase();
 
-            switch ($http_method) {
-                case HttpMethods::GET:
-                    $app->get($pattern, [$this->action_list[$index]::class, '__invoke']);
-                    break;
-
-                case HttpMethods::POST:
-                    $app->post($pattern, [$this->action_list[$index]::class, '__invoke']);
-                    break;
-
-                case HttpMethods::PUT:
-                    $app->put($pattern, [$this->action_list[$index]::class, '__invoke']);
-                    break;
-
-                case HttpMethods::PATCH:
-                    $app->patch($pattern, [$this->action_list[$index]::class, '__invoke']);
-                    break;
-
-                case HttpMethods::DELETE:
-                    $app->delete($pattern, [$this->action_list[$index]::class, '__invoke']);
-                    break;
+            if (!isset($this->event_map[$phase])) {
+                $this->event_map[$phase] = [];
             }
+
+            $this->event_map[$phase][] = new $event_list[$index];
         }
 
-        $this->callEvents(EventPhases::AFTER_ACTIONS, $app);
+        return $this;
     }
 
     /**
@@ -283,5 +160,142 @@ final class AppBuilder
                 $this->event_map[$event][$index](...$args);
             }
         }
+    }
+
+    /****************************************************/
+    /* MIDDLEWARES                                      */
+    /****************************************************/
+
+    /**
+     * Set api middlewares
+     *
+     * @param string[] $middleware_list
+     * @return AppBuilder
+     */
+    public function setMiddlewares(array $middleware_list): AppBuilder
+    {
+        $length = count($middleware_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $priority = $middleware_list[$index]::getPriority();
+
+            if (!isset($this->middleware_list[$priority])) {
+                $this->middleware_list[$priority] = [];
+            }
+
+            $this->middleware_list[$priority][] = $middleware_list[$index];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Load application middlewares
+     *
+     * @param App $app
+     * @return void
+     */
+    private function loadMiddlewares(App $app): void
+    {
+        $this->callEvents(EventPhases::BEFORE_MIDDLEWARES, $app, $this->middleware_list);
+
+        $priority_list = array_keys($this->middleware_list);
+        $length = count($priority_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $priority = $priority_list[$index];
+            $length_list = count($this->middleware_list[$priority]);
+
+            for ($index_list = 0; $index_list < $length_list; $index_list++) {
+                $app->add($this->middleware_list[$priority][$index_list]);
+            }
+        }
+
+        $this->callEvents(EventPhases::AFTER_MIDDLEWARES, $app);
+    }
+
+    /****************************************************/
+    /* DEFINITIONS                                      */
+    /****************************************************/
+
+    /**
+     * Set dependencies definitions
+     *
+     * @param array $definition_list
+     * @return AppBuilder
+     */
+    public function setDefinitions(array $definition_list): AppBuilder
+    {
+        $keys = array_keys($definition_list);
+        $length = count($keys);
+
+        for ($index = 0; $index < $length; $index++) {
+            $this->definition_list[$keys[$index]] = $definition_list[$keys[$index]];
+        }
+
+        return $this;
+    }
+
+    /****************************************************/
+    /* ACTIONS                                          */
+    /****************************************************/
+
+    /**
+     * Set api actions
+     *
+     * @param Action[] $action_list
+     * @return AppBuilder
+     */
+    public function setActions(array $action_list): AppBuilder
+    {
+        $length = count($action_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $this->action_list[] = $action_list[$index];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Load application actions
+     *
+     * @param App $app
+     * @return void
+     */
+    private function loadActions(App $app): void
+    {
+        $this->callEvents(EventPhases::BEFORE_ACTIONS, $app, $this->action_list);
+
+        $length = count($this->action_list);
+
+        for ($index = 0; $index < $length; $index++) {
+            $pattern = $this->action_list[$index]::getPattern();
+            $http_method = $this->action_list[$index]::getHttpMethod();
+
+            switch ($http_method) {
+                case HttpMethods::GET:
+                    $app->get($pattern, [$this->action_list[$index], '__invoke']);
+                    break;
+
+                case HttpMethods::POST:
+                    $app->post($pattern, [$this->action_list[$index], '__invoke']);
+                    break;
+
+                case HttpMethods::PUT:
+                    $app->put($pattern, [$this->action_list[$index], '__invoke']);
+                    break;
+
+                case HttpMethods::PATCH:
+                    $app->patch($pattern, [$this->action_list[$index], '__invoke']);
+                    break;
+
+                case HttpMethods::DELETE:
+                    $app->delete($pattern, [$this->action_list[$index], '__invoke']);
+                    break;
+            }
+        }
+
+        $this->callEvents(EventPhases::AFTER_ACTIONS, $app);
     }
 }

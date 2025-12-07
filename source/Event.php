@@ -2,17 +2,17 @@
 
 namespace Papi;
 
-abstract class Event
+interface Event
 {
     /**
      * @var int
      * @see \Papi\enumerator\EventPhases
      */
-    abstract public int $phase { get; }
+    public static function getPhase(): int;
 
     /**
      * @param mixed ...$args
      * @return void
      */
-    abstract public function __invoke(mixed ...$args): void;
+    public function __invoke(mixed ...$args): void;
 }
