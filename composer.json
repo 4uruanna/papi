@@ -1,6 +1,5 @@
 {
     "name": "papi/papi",
-    "version": "1.1.0",
     "description": "Slim Framework Builder",
     "type": "library",
     "license": "Apache-2.0",
@@ -21,7 +20,7 @@
         "test": "./vendor/bin/phpunit"
     },
     "require": {
-        "php": ">=8.5.0",
+        "php": ">=8.3.0",
         "slim/slim": "^4.15",
         "slim/psr7": "^1.8",
         "php-di/slim-bridge": "^3.4"
