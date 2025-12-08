@@ -36,3 +36,11 @@ new AppBuilder()
 ```shell
 composer test
 ```
+
+## Resources
+
+- [Slim documentation: Routing](https://www.slimframework.com/docs/v4/objects/routing.html#custom-route)
+- [Slim documentation: Middleware](https://www.slimframework.com/docs/v4/concepts/middleware.html)
+- DI
+    - [Slim documentation: Dependency Container](https://www.slimframework.com/docs/v4/concepts/di.html)
+    - [Php-di documentation](https://php-di.org/)

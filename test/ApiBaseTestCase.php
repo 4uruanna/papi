@@ -8,7 +8,7 @@ use Slim\Psr7\Headers;
 use Slim\Psr7\Request;
 use Slim\Psr7\Uri;
 
-class ApiTestCase extends TestCase
+class ApiBaseTestCase extends TestCase
 {
     protected function createRequest(
         string $method,

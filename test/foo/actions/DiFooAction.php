@@ -4,11 +4,19 @@ namespace Papi\Test\foo\actions;
 
 use Papi\Action;
 use Papi\enumerator\HttpMethods;
+use Papi\Test\foo\services\FooService;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
-class FooAction implements Action
+class DiFooAction implements Action
 {
+    private FooService $fooService;
+
+    public function __construct(FooService $fooService)
+    {
+        $this->fooService = $fooService;
+    }
+
     public static function getMethod(): string
     {
         return HttpMethods::GET;
@@ -16,7 +24,7 @@ class FooAction implements Action
 
     public static function getPattern(): string
     {
-        return '/foo';
+        return '/f00';
     }
 
     public function __invoke(Request $request, Response $response): Response
@@ -25,7 +33,7 @@ class FooAction implements Action
             ->withStatus(200)
             ->withHeader('Content-Type', 'application/json')
             ->getBody()
-            ->write("foo");
+            ->write($this->fooService->getFoo());
         return $response;
     }
 }

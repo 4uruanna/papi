@@ -2,9 +2,17 @@
 
 namespace Papi\Test\foo;
 
-use Papi\Module;
+use Papi\ApiModule;
+use Papi\Test\foo\services\FooService;
 
-class FooModule extends Module
+use function DI\create;
+
+class FooModule extends ApiModule
 {
-    protected string $path = __DIR__;
+    public function __construct()
+    {
+        $this->definition_list = [
+            FooService::class => create()->constructor()
+        ];
+    }
 }

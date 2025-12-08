@@ -8,7 +8,7 @@ interface Event
      * @var int
      * @see \Papi\enumerator\EventPhases
      */
-    public static function getPhase(): int;
+    public static function getPhase(): string;
 
     /**
      * @param mixed ...$args

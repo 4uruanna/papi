@@ -11,7 +11,7 @@ interface Action
      * @var string
      * @see \Papi\enumerator\HttpMethods
      */
-    public static function getHttpMethod(): string;
+    public static function getMethod(): string;
 
     /**
      * @var string

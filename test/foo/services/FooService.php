@@ -6,6 +6,6 @@ class FooService
 {
     public function getFoo(): string
     {
-        return 'foo';
+        return 'f00';
     }
 }

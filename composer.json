@@ -1,6 +1,6 @@
 {
     "name": "papi/papi",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "description": "Slim Framework Builder",
     "type": "library",
     "license": "Apache-2.0",
@@ -28,7 +28,6 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^4.0",
-        "phpunit/phpunit": "^12.4",
-        "mockery/mockery": "^1.6"
+        "phpunit/phpunit": "^12.4"
     }
 }
