@@ -7,6 +7,7 @@ use DI\Container;
 use DI\ContainerBuilder;
 use Papi\enumerator\EventType;
 use Papi\interface\PapiAction;
+use Papi\interface\PapiEventListener;
 use Slim\App;
 
 final class PapiBuilder
@@ -65,7 +66,12 @@ final class PapiBuilder
 
     public function addEvents(string ...$events): self
     {
-        array_push($this->events, ...$events);
+        foreach ($events as $event) {
+            $interfaces = class_implements($event);
+            if (isset($interfaces[PapiEventListener::class])) {
+                $this->events[$event] = new $event();
+            }
+        }
         return $this;
     }
 
@@ -152,6 +158,8 @@ final class PapiBuilder
                 fn($m) => isset($middlewares_map[$m]) === false
             );
         }
+
+        $this->middlewares = array_keys($middlewares_map);
     }
 
     private function setupModules(): bool
@@ -159,13 +167,8 @@ final class PapiBuilder
         $result = true;
 
         foreach ($this->modules as $module_class) {
-            if (is_subclass_of($module_class, PapiModule::class)) {
-                /**
-                 * @var PapiModule
-                 */
-                $module = new $module_class();
-
-                $prerequisites = $module::getPrerequisites();
+            if (is_subclass_of($module_class, PapiModule::class)) {;
+                $prerequisites = $module_class::getPrerequisites();
 
                 foreach ($prerequisites as $prerequisite) {
                     if (isset($this->modules[$prerequisite]) === false) {
@@ -173,11 +176,12 @@ final class PapiBuilder
                     }
                 }
 
-                $module::configure();
-                $this->addDefinition($module::getDefinitions());
-                $this->addEvents(...$module::getEvents());
-                $this->addAction(...$module::getActions());
-                $this->addMiddlewares(...$module::getMiddlewares());
+                $module_class::configure();
+                $this->modules[$module_class] = true;
+                $this->addDefinition($module_class::getDefinitions());
+                $this->addEvents(...$module_class::getEvents());
+                $this->addAction(...$module_class::getActions());
+                $this->addMiddlewares(...$module_class::getMiddlewares());
             }
         }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Papi\abstract;
+namespace Papi\interface;
 
 use Psr\Http\Server\MiddlewareInterface;
 use Slim\App;
