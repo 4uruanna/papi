@@ -149,6 +149,7 @@ final class PapiBuilder
                 if (isset($middlewares_map[$middleware]) === false) {
                     if ($middleware::register($app, $middlewares_map)) {
                         $middlewares_map[$middleware] = true;
+                        $app->add($middleware);
                     }
                 }
             }
