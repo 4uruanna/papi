@@ -1,6 +1,5 @@
 # Papi
 
-
 ![]( https://img.shields.io/badge/php-8.5-777BB4?logo=php)
 ![]( https://img.shields.io/badge/composer-2-885630?logo=composer)
 
@@ -20,127 +19,48 @@ composer require papi/papi
 ```php
 require __DIR__ . "/../vendor/autoload.php";
 
+use function DI\create;
+
+$definitions = [ FooDefinition::class => create()->constructor() ];
+
 ApiBuilder::getInstance()
-    ->setEvents([ FooEvent::class, BarEvent::class ])
-    ->setModules([ FooModule::class, BarModule::class ])
-    ->setDefinition([ FooService::class => create()->constructor() ])
-    ->setActions([ FooAction::class ])
+    ->setActions(FooGet::class)
+    ->setDefinition($definitions)
+    ->setEvents(FooEvent::class, BarEvent::class)
+    ->setModules(FooModule::class, BarModule::class)
     ->build()
     ->run();
 ```
 
 ### Samples
 
-#### Events
-```Php
-use Papi\enumerator\EventPhases;
-use Papi\Event;
+- [Action](./test/abstract/PapiGetTest.php)
+- [Definition](https://www.slimframework.com/docs/v4/concepts/di.html)
+- [Event](./test/mock/FooEvent.php)
+- [Middleware](./test/mock/BarMiddleware.php)
+- [Module](./test/mock/FooModule.php)
 
-class FooEvent implements Event
-{
-    public static function getPhase(): string
-    {
-        return EventPhases::AFTER_BUILD_DI;
-    }
+### Events
 
-    public function __invoke(mixed ...$args): void
-    {
-        // ...
-    }
-}
-```
+| Order | Phase                     | Options                                   |
+|:-:    |:-                         |:-                                         |
+| 1     | `START`                   | []                                        |
+| 2     | `CONFIGURE_DEFINITIONS`   | [container_builder ➡ ContainerBuilder, definitions ➡ array] |
+| 3     | `CONFIGURE_MIDDLEWARES`   | [app ➡ App, middlewares ➡ array]          |
+| 4     | `CONFIGURE_ACTIONS`       | [app ➡ App, actions ➡ array]              |
+| 5     | `END`                     | [app ➡ App]                               |
 
-| Order | Phase                 | Arguments                             |
-|:-:    |:-                     |:-                                     |
-| 1     | `BEFORE_BUILD`        | ()                                    |
-| 2     | `BEFORE_BUILD_DI`     | (ContainerBuilder $builder)           |
-| 3     | `AFTER_BUILD_DI`      | (Container $container)                |
-| 4     | `BEFORE_MIDDLEWARES`  | (App $app, array $middleware_list)    |
-| 5     | `AFTER_MIDDLEWARES`   | (App $app)                            |
-| 6     | `BEFORE_ACTIONS`      | (App $app, array $routes)             |
-| 7     | `AFTER_ACTIONS`       | (App $app)                            |
-| 8     | `AFTER_BUILD`         | (App $app)                            |
 
-#### Actions
+## Modules Availables
 
-```Php
-use Papi\Action;
-use Papi\enumerator\HttpMethods;
-use Slim\Psr7\Request;
-use Slim\Psr7\Response;
-
-class FooAction implements Action
-{
-    public static function getMethod(): string
-    {
-        return HttpMethods::GET;
-    }
-
-    public static function getPattern(): string
-    {
-        return '/foo';
-    }
-
-    public function __invoke(Request $request, Response $response): Response
-    {
-        $response
-            ->withStatus(200)
-            ->getBody()
-            ->write("foo");
-        return $response;
-    }
-}
-```
-
-#### Middleware
-
-```Php
-use Papi\Middleware;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Http\Message\ResponseInterface;
-
-class FooMiddlewareBefore implements Middleware
-{
-    public static function getPriority(): int
-    {
-        return 1;
-    }
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        // ...
-        return $handler->handle($request);
-    }
-}
-
-```
-
-#### Module
-
-```Php
-class FooModule extends ApiModule
-{
-    public function __construct()
-    {
-        $this->action_list = [ FooAction::class ];
-
-        $this->definition_list = [ FooService::class => create()->constructor() ];
-
-        $this->event_list = [ FooEvent::class ];
-
-        $this->middleware_list = [ FooMiddleWare::class ];
-
-        $this->prerequisite_list [ BarModule::class ];
-    }
-
-    public function configure()
-    {
-        defined("CUSTOM_OPTION") || define("CUSTOM_OPTION", true);
-    }
-}
-
-```
+| Name          | Github    | Packagist |
+|:-             |:-         |:-         |
+| Cache         | [GitHub](https://github.com/4uruanna/papimod-cache)       | [Packagist](https://packagist.org/packages/papimod/cache) |
+| CORS          | [GitHub](https://github.com/4uruanna/papimod-cache)       | [Packagist](https://packagist.org/packages/papimod/cache) |
+| CORS          | [GitHub](https://github.com/4uruanna/papimod-cors)        | [Packagist](https://packagist.org/packages/papimod/cors) |
+| Date          | [GitHub](https://github.com/4uruanna/papimod-date)        | [Packagist](https://packagist.org/packages/papimod/date) |
+| DotEnv        | [GitHub](https://github.com/4uruanna/papimod-dotenv)      | [Packagist](https://packagist.org/packages/papimod/dotenv) |
+| Http Error    | [GitHub](https://github.com/4uruanna/papimod-http-error)  | [Packagist](https://packagist.org/packages/papimod/http-error) |
 
 ## Test
 
@@ -148,23 +68,22 @@ class FooModule extends ApiModule
 composer test
 ```
 
-### Call API Test
+### Call API From Test
 
 ```Php
-use Papi\Test\ApiBaseTestCase;
+use Papi\Test\PapiTestCase;
+use Papi\Test\mock\FooGet;
 use PHPUnit\Framework\Attributes\CoversClass;
 
-#[CoversClass(FooModule::class)]
-class ApiBuilderTest extends ApiBaseTestCase
+class CustomTest extends PapiTestCase
 {
     public function testLoadActions(): void
     {
-        $request = $this->createRequest('GET', '/foo')
-            ->withParsedBody([ /* ... */ ]);
+        $body = [ "attribute" => 1 ];
+        $request = $this->createRequest('GET', '/foo', $body);
 
-        $response = ApiBuilder::getInstance()
-            ->setActions([FooAction::class])
-            ->handle($request);
+        $builder = new PapiBuilder();
+        $response = $builder->setActions([FooGet::class])->handle($request);
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals("foo", (string) $response->getBody());
@@ -172,16 +91,8 @@ class ApiBuilderTest extends ApiBaseTestCase
 }
 ```
 
-## Modules Availables
-
 ## Resources
 
-- __Official Modules__
-    - __Cache :__ [GitHub](https://github.com/4uruanna/papimod-cache), [Packagist](https://packagist.org/packages/papimod/cache)
-    - __CORS :__ [GitHub](https://github.com/4uruanna/papimod-cors), [Packagist](https://packagist.org/packages/papimod/cors)
-    - __Date :__ [GitHub](https://github.com/4uruanna/papimod-date), [Packagist](https://packagist.org/packages/papimod/date)
-    - __DotEnv :__ [GitHub](https://github.com/4uruanna/papimod-dotenv), [Packagist](https://packagist.org/packages/papimod/dotenv)
-    - __Http Error :__ [GitHub](https://github.com/4uruanna/papimod-http-error), [Packagist](https://packagist.org/packages/papimod/http-error)
 - __[Slim](https://www.slimframework.com/docs/v4/)__
     - [Routing](https://www.slimframework.com/docs/v4/objects/routing.html#custom-route)
     - [Middleware](https://www.slimframework.com/docs/v4/concepts/middleware.html)
