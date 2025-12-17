@@ -2,11 +2,11 @@
 
 namespace Papi\Test\mock;
 
-use Papi\abstract\PapiGet;
+use Papi\abstract\PapiPut;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
-class FooGet extends PapiGet
+class FooPut extends PapiPut
 {
     public static function getPattern(): string
     {
