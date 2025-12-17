@@ -34,7 +34,7 @@ abstract class PapiTestCase extends TestCase
         }
 
         $request = new Request(
-            $http_method->value,
+            strtoupper($http_method->value),
             $uri,
             $headers_wrapper,
             $cookies,
