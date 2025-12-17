@@ -23,8 +23,8 @@ final class PapiMiddlewareTest extends PapiTestCase
     public function setUp(): void
     {
         $this->request = $this->createRequest(HttpMethod::GET, "/");
-        $this->builder = new PapiBuilder()
-            ->addAction(FooGet::class);
+        $this->builder = new PapiBuilder();
+        $this->builder->addAction(FooGet::class);
     }
 
     public function testExecutionPriority(): void
