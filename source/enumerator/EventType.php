@@ -2,17 +2,15 @@
 
 namespace Papi\enumerator;
 
-enum EventType
+enum EventType: int
 {
-    case START;
+    case START = 0;
 
-    case CONFIGURE_DEFINITIONS;
+    case CONFIGURE_DEFINITIONS = 100;
 
-    case CONFIGURE_EVENTS;
+    case CONFIGURE_MIDDLEWARES = 200;
 
-    case CONFIGURE_MIDDLEWARES;
+    case CONFIGURE_ACTIONS = 300;
 
-    case CONFIGURE_ACTIONS;
-
-    case END;
+    case END = 400;
 }
