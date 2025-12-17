@@ -168,7 +168,7 @@ final class PapiBuilder
         $result = true;
 
         foreach ($this->modules as $module_class) {
-            if (is_subclass_of($module_class, PapiModule::class)) {;
+            if (is_subclass_of($module_class, PapiModule::class)) {
                 $prerequisites = $module_class::getPrerequisites();
 
                 foreach ($prerequisites as $prerequisite) {
