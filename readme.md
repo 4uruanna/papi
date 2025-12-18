@@ -19,17 +19,20 @@ composer require papi/papi
 ```php
 require __DIR__ . "/../vendor/autoload.php";
 
+use Papi\PapiBuilder;
 use function DI\create;
 
 $definitions = [ FooDefinition::class => create()->constructor() ];
 
-ApiBuilder::getInstance()
-    ->setActions(FooGet::class)
+$builder = new PapiBuilder();
+
+$app = $builder->setActions(FooGet::class)
     ->setDefinition($definitions)
     ->setEvent(FooEvent::class, BarEvent::class)
     ->setModule(FooModule::class, BarModule::class)
-    ->build()
-    ->run();
+    ->build();
+
+$app->run();
 ```
 
 ### Samples
@@ -81,9 +84,11 @@ class CustomTest extends PapiTestCase
     {
         $body = [ "attribute" => 1 ];
         $request = $this->createRequest('GET', '/foo', $body);
-
         $builder = new PapiBuilder();
-        $response = $builder->setActions([FooGet::class])->handle($request);
+
+        $response = $builder
+            ->setAction([FooGet::class])
+            ->handle($request);
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals("foo", (string) $response->getBody());
