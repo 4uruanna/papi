@@ -64,7 +64,7 @@ final class PapiBuilder
         return $this;
     }
 
-    public function addEvents(string ...$events): self
+    public function addEvent(string ...$events): self
     {
         foreach ($events as $event) {
             $interfaces = class_implements($event);
@@ -75,13 +75,13 @@ final class PapiBuilder
         return $this;
     }
 
-    public function addMiddlewares(string ...$middlewares): self
+    public function addMiddleware(string ...$middlewares): self
     {
         array_push($this->middlewares, ...$middlewares);
         return $this;
     }
 
-    public function addModules(string ...$modules): self
+    public function addModule(string ...$modules): self
     {
         array_push($this->modules, ...$modules);
         return $this;
@@ -180,9 +180,9 @@ final class PapiBuilder
                 $module_class::configure();
                 $this->modules[$module_class] = true;
                 $this->addDefinition($module_class::getDefinitions());
-                $this->addEvents(...$module_class::getEvents());
+                $this->addEvent(...$module_class::getEvents());
                 $this->addAction(...$module_class::getActions());
-                $this->addMiddlewares(...$module_class::getMiddlewares());
+                $this->addMiddleware(...$module_class::getMiddlewares());
             }
         }
 

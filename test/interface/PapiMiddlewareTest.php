@@ -30,7 +30,7 @@ final class PapiMiddlewareTest extends PapiTestCase
     public function testExecutionPriority(): void
     {
         $response = $this->builder
-            ->addMiddlewares(
+            ->addMiddleware(
                 BarMiddleware::class,
                 FooMiddleware::class
             )

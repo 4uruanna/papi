@@ -26,8 +26,8 @@ $definitions = [ FooDefinition::class => create()->constructor() ];
 ApiBuilder::getInstance()
     ->setActions(FooGet::class)
     ->setDefinition($definitions)
-    ->setEvents(FooEvent::class, BarEvent::class)
-    ->setModules(FooModule::class, BarModule::class)
+    ->setEvent(FooEvent::class, BarEvent::class)
+    ->setModule(FooModule::class, BarModule::class)
     ->build()
     ->run();
 ```

@@ -20,7 +20,7 @@ final class PapiEventListenerTest extends PapiTestCase
     public function setUp(): void
     {
         $builder = new PapiBuilder();
-        $builder->addEvents(AllEvent::class)->build();
+        $builder->addEvent(AllEvent::class)->build();
 
         $reflection = new ReflectionClass(PapiBuilder::class);
         $events = $reflection->getProperty('events')->getValue($builder);

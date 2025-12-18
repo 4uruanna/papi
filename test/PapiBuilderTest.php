@@ -28,9 +28,7 @@ final class PapiBuilderTest extends PapiTestCase
 
     public function testAddAction(): void
     {
-        $this->builder
-            ->addAction(FooGet::class);
-
+        $this->builder->addAction(FooGet::class);
         $reflection = new ReflectionClass(PapiBuilder::class);
         $actions = $reflection->getProperty("actions")->getValue($this->builder);
         $this->assertContains(FooGet::class, $actions);
@@ -38,9 +36,7 @@ final class PapiBuilderTest extends PapiTestCase
 
     public function testAddDefinition(): void
     {
-        $this->builder
-            ->addDefinition([FooDefinition::class => create()->constructor()]);
-
+        $this->builder->addDefinition([FooDefinition::class => create()->constructor()]);
         $reflection = new ReflectionClass(PapiBuilder::class);
         $definitions = $reflection->getProperty("definitions")->getValue($this->builder);
         $this->assertArrayHasKey(FooDefinition::class, $definitions);
@@ -48,9 +44,7 @@ final class PapiBuilderTest extends PapiTestCase
 
     public function testAddEvent(): void
     {
-        $this->builder
-            ->addEvents(FooEvent::class);
-
+        $this->builder->addEvent(FooEvent::class);
         $reflection = new ReflectionClass(PapiBuilder::class);
         $events = $reflection->getProperty("events")->getValue($this->builder);
         $this->assertArrayHasKey(FooEvent::class, $events);
@@ -58,9 +52,7 @@ final class PapiBuilderTest extends PapiTestCase
 
     public function testAddMiddleware(): void
     {
-        $this->builder
-            ->addMiddlewares(FooMiddleware::class);
-
+        $this->builder->addMiddleware(FooMiddleware::class);
         $reflection = new ReflectionClass(PapiBuilder::class);
         $middlewares = $reflection->getProperty("middlewares")->getValue($this->builder);
         $this->assertContains(FooMiddleware::class, $middlewares);
@@ -69,7 +61,7 @@ final class PapiBuilderTest extends PapiTestCase
     public function testAddModule(): void
     {
         $app = $this->builder
-            ->addModules(
+            ->addModule(
                 FooModule::class,
                 BarModule::class
             )
@@ -97,7 +89,7 @@ final class PapiBuilderTest extends PapiTestCase
     public function testFailLoadPrerequisites(): void
     {
         $app = $this->builder
-            ->addModules(BarModule::class)
+            ->addModule(BarModule::class)
             ->build();
 
         $this->assertFalse($app);
